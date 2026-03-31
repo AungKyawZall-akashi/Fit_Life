@@ -29,6 +29,7 @@
         <activity android:name=".activities.DashboardActivity" />
         <activity android:name=".activities.AddWorkoutActivity" />
         <activity android:name=".activities.DetailActivity" />
+        <activity android:name=".activities.DayDetailActivity" />
 
     </application>
 

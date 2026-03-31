@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import com.example.fitlife.R;
 
@@ -18,6 +19,10 @@ public class CalendarFragment extends Fragment {
         textView.setText("Calendar coming soon!");
         textView.setTextSize(24);
         textView.setGravity(android.view.Gravity.CENTER);
+        if (getContext() != null) {
+            textView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.main_background));
+            textView.setTextColor(ContextCompat.getColor(getContext(), R.color.text_primary));
+        }
         return textView;
     }
 }

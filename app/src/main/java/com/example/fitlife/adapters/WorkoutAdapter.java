@@ -12,7 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.fitlife.R;
 import com.example.fitlife.models.Workout;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutViewHolder> {
 
@@ -42,6 +45,14 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutV
         Workout workout = workoutList.get(position);
         holder.titleTextView.setText(workout.getTitle());
         holder.durationTextView.setText(workout.getDuration() + " mins");
+
+        if (workout.getTimestamp() > 0) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            holder.dateTextView.setText(sdf.format(new Date(workout.getTimestamp())));
+            holder.dateTextView.setVisibility(View.VISIBLE);
+        } else {
+            holder.dateTextView.setVisibility(View.GONE);
+        }
         
         // Set dynamic icon
         setWorkoutIcon(holder.ivWorkoutIcon, workout.getTitle());
@@ -101,6 +112,7 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutV
     public static class WorkoutViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView;
         TextView durationTextView;
+        TextView dateTextView;
         CheckBox cbCompleted;
         ImageView ivWorkoutIcon;
 
@@ -108,6 +120,7 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutV
             super(itemView);
             titleTextView = itemView.findViewById(R.id.textViewTitle);
             durationTextView = itemView.findViewById(R.id.textViewDuration);
+            dateTextView = itemView.findViewById(R.id.textViewDate);
             cbCompleted = itemView.findViewById(R.id.cbCompleted);
             ivWorkoutIcon = itemView.findViewById(R.id.ivWorkoutIcon);
         }

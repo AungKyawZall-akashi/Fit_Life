@@ -11,6 +11,7 @@ public class Workout {
     private String exercises;
     private String equipment;
     private String instructions;
+    private long timestamp;
 
     public Workout() {}
 
@@ -62,4 +63,7 @@ public class Workout {
 
     public String getInstructions() { return instructions; }
     public void setInstructions(String instructions) { this.instructions = instructions; }
+
+    public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 }

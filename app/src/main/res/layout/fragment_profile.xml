@@ -191,8 +191,8 @@
                 android:layout_marginStart="52dp"
                 android:background="@color/main_background" />
 
-            <!-- Theme Item -->
             <RelativeLayout
+                android:id="@+id/rlTheme"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:paddingStart="12dp"
@@ -203,7 +203,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_centerVertical="true"
-                    android:src="@drawable/ic_yoga"
+                    android:src="@android:drawable/ic_menu_manage"
                     app:tint="@color/accent_orange" />
 
                 <TextView

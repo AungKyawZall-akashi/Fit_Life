@@ -18,6 +18,7 @@ public class AddWorkoutActivity extends AppCompatActivity {
     private FirebaseFirestore firestore;
     private FirebaseAuth mAuth;
     private String workoutDocId = null;
+    private long existingTimestamp = 0L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,7 @@ public class AddWorkoutActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     Workout workout = documentSnapshot.toObject(Workout.class);
                     if (workout != null) {
+                        existingTimestamp = workout.getTimestamp();
                         etWorkoutName.setText(workout.getTitle());
                         etExercises.setText(workout.getExercises());
                         etEquipment.setText(workout.getEquipment());
@@ -96,6 +98,8 @@ public class AddWorkoutActivity extends AppCompatActivity {
         workout.setCompleted(false);
         workout.setUserId(userId); // Explicitly set the userId field
         workout.setDescription(""); // Clear the misused description field
+        long now = System.currentTimeMillis();
+        workout.setTimestamp(workoutDocId != null ? (existingTimestamp != 0L ? existingTimestamp : now) : now);
 
         btnSaveWorkout.setEnabled(false);
 

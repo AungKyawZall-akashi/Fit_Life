@@ -65,12 +65,12 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupThemeSwitch() {
-        if (getActivity() == null) return;
-        
+        if (getActivity() == null || switchProfileTheme == null) return;
+
         SharedPreferences sharedPref = getActivity().getSharedPreferences("ThemePrefs", Context.MODE_PRIVATE);
         boolean isDarkMode = sharedPref.getBoolean("isDarkMode", false);
         switchProfileTheme.setChecked(isDarkMode);
-        
+
         switchProfileTheme.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putBoolean("isDarkMode", isChecked);
