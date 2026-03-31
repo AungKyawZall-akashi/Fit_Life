@@ -12,7 +12,7 @@
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="88dp" />
+        android:layout_marginBottom="88dp" />
 
     <!-- Real Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

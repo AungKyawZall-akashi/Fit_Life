@@ -92,6 +92,7 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
     @Override
     public void onResume() {
         super.onResume();
+        filterWorkoutsToToday();
         checkEmptyState();
     }
 
@@ -109,6 +110,10 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
                     }
 
                     if (value != null) {
+                        long[] todayRange = getTodayRangeMillis();
+                        long startOfDay = todayRange[0];
+                        long endOfDay = todayRange[1];
+
                         workoutList.clear();
                         for (QueryDocumentSnapshot doc : value) {
                             Workout workout = doc.toObject(Workout.class);
@@ -117,7 +122,10 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
                             if (timestamp != null) {
                                 workout.setTimestamp(timestamp);
                             }
-                            workoutList.add(workout);
+                            long ts = workout.getTimestamp();
+                            if (ts >= startOfDay && ts <= endOfDay) {
+                                workoutList.add(workout);
+                            }
                         }
                         adapter.notifyDataSetChanged();
                         checkEmptyState();
@@ -259,30 +267,12 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
 
     private void updateStatistics() {
         if (workoutList == null) return;
-
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-        cal.set(java.util.Calendar.MINUTE, 0);
-        cal.set(java.util.Calendar.SECOND, 0);
-        cal.set(java.util.Calendar.MILLISECOND, 0);
-        long startOfDay = cal.getTimeInMillis();
-
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
-        cal.set(java.util.Calendar.MINUTE, 59);
-        cal.set(java.util.Calendar.SECOND, 59);
-        cal.set(java.util.Calendar.MILLISECOND, 999);
-        long endOfDay = cal.getTimeInMillis();
-
-        int totalToday = 0;
+        int totalToday = workoutList.size();
         int completedToday = 0;
 
         for (Workout w : workoutList) {
-            long ts = w.getTimestamp();
-            if (ts >= startOfDay && ts <= endOfDay) {
-                totalToday++;
-                if (w.isCompleted()) {
-                    completedToday++;
-                }
+            if (w.isCompleted()) {
+                completedToday++;
             }
         }
 
@@ -297,6 +287,44 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         if (tvStatsCount != null) {
             tvStatsCount.setText(completedToday + " of " + totalToday + " workouts today");
         }
+    }
+
+    private void filterWorkoutsToToday() {
+        if (workoutList == null || workoutList.isEmpty() || adapter == null) return;
+
+        long[] todayRange = getTodayRangeMillis();
+        long startOfDay = todayRange[0];
+        long endOfDay = todayRange[1];
+
+        boolean changed = false;
+        for (int i = workoutList.size() - 1; i >= 0; i--) {
+            long ts = workoutList.get(i).getTimestamp();
+            if (ts < startOfDay || ts > endOfDay) {
+                workoutList.remove(i);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    private long[] getTodayRangeMillis() {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        cal.set(java.util.Calendar.MILLISECOND, 0);
+        long startOfDay = cal.getTimeInMillis();
+
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        cal.set(java.util.Calendar.MINUTE, 59);
+        cal.set(java.util.Calendar.SECOND, 59);
+        cal.set(java.util.Calendar.MILLISECOND, 999);
+        long endOfDay = cal.getTimeInMillis();
+
+        return new long[]{startOfDay, endOfDay};
     }
 
     private void setupRecyclerView() {
