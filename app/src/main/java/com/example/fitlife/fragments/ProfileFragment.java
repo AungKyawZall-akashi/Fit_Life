@@ -24,16 +24,27 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.example.fitlife.R;
 import com.example.fitlife.activities.MainActivity;
+import com.example.fitlife.adapters.PurchaseAdapter;
+import com.example.fitlife.adapters.PurchaseHistoryAdapter;
+import com.example.fitlife.models.PackagePurchase;
+import com.example.fitlife.models.PurchaseHistoryRecord;
 import com.example.fitlife.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ProfileFragment extends Fragment {
@@ -44,9 +55,19 @@ public class ProfileFragment extends Fragment {
     private View rlEditProfile;
     private SwitchCompat switchProfileTheme;
     private View btnUploadProfilePicture;
+    private RecyclerView rvPurchases;
+    private TextView tvPurchasesEmpty;
+    private RecyclerView rvPurchaseHistory;
+    private TextView tvPurchaseHistoryEmpty;
     private FirebaseAuth mAuth;
     private FirebaseFirestore firestore;
     private ActivityResultLauncher<String> pickImageLauncher;
+    private ListenerRegistration purchasesListener;
+    private ListenerRegistration purchaseHistoryListener;
+    private final List<PackagePurchase> purchases = new ArrayList<>();
+    private PurchaseAdapter purchaseAdapter;
+    private final List<PurchaseHistoryRecord> purchaseHistory = new ArrayList<>();
+    private PurchaseHistoryAdapter purchaseHistoryAdapter;
 
     @Nullable
     @Override
@@ -64,6 +85,18 @@ public class ProfileFragment extends Fragment {
         rlEditProfile = view.findViewById(R.id.rlEditProfile);
         switchProfileTheme = view.findViewById(R.id.switchProfileTheme);
         btnUploadProfilePicture = view.findViewById(R.id.btnUploadProfilePicture);
+        rvPurchases = view.findViewById(R.id.rvPurchases);
+        tvPurchasesEmpty = view.findViewById(R.id.tvPurchasesEmpty);
+        rvPurchaseHistory = view.findViewById(R.id.rvPurchaseHistory);
+        tvPurchaseHistoryEmpty = view.findViewById(R.id.tvPurchaseHistoryEmpty);
+
+        purchaseAdapter = new PurchaseAdapter(purchases, purchase -> showStopPurchaseDialog(purchase));
+        rvPurchases.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvPurchases.setAdapter(purchaseAdapter);
+
+        purchaseHistoryAdapter = new PurchaseHistoryAdapter(purchaseHistory);
+        rvPurchaseHistory.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvPurchaseHistory.setAdapter(purchaseHistoryAdapter);
 
         pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri != null) {
@@ -72,6 +105,8 @@ public class ProfileFragment extends Fragment {
         });
 
         loadUserProfile();
+        startPurchasesListener();
+        startPurchaseHistoryListener();
         setupThemeSwitch();
 
         rlEditProfile.setOnClickListener(v -> showEditProfileDialog());
@@ -82,6 +117,19 @@ public class ProfileFragment extends Fragment {
         }
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (purchasesListener != null) {
+            purchasesListener.remove();
+            purchasesListener = null;
+        }
+        if (purchaseHistoryListener != null) {
+            purchaseHistoryListener.remove();
+            purchaseHistoryListener = null;
+        }
     }
 
     private void setupThemeSwitch() {
@@ -186,6 +234,152 @@ public class ProfileFragment extends Fragment {
                         }
                     });
         }
+    }
+
+    private void startPurchasesListener() {
+        if (purchasesListener != null) {
+            purchasesListener.remove();
+            purchasesListener = null;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            purchases.clear();
+            if (purchaseAdapter != null) purchaseAdapter.notifyDataSetChanged();
+            if (tvPurchasesEmpty != null) tvPurchasesEmpty.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        purchasesListener = firestore.collection("package_purchases")
+                .whereEqualTo("userId", user.getUid())
+                .addSnapshotListener((snap, err) -> {
+                    if (!isAdded() || snap == null || err != null) return;
+
+                    purchases.clear();
+                    for (DocumentSnapshot doc : snap.getDocuments()) {
+                        PackagePurchase p = doc.toObject(PackagePurchase.class);
+                        if (p == null) continue;
+                        purchases.add(p);
+                    }
+
+                    syncHistoryFromPurchases(user.getUid(), purchases);
+
+                    Collections.sort(purchases, Comparator.comparingLong(PackagePurchase::getExpiresAt).reversed());
+                    if (purchaseAdapter != null) purchaseAdapter.notifyDataSetChanged();
+                    if (tvPurchasesEmpty != null) {
+                        tvPurchasesEmpty.setVisibility(purchases.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
+                });
+    }
+
+    private void syncHistoryFromPurchases(String userId, List<PackagePurchase> list) {
+        if (userId == null || list == null) return;
+        for (PackagePurchase p : list) {
+            if (p == null || p.getPackageKey() == null) continue;
+            long purchasedAt = p.getPurchasedAt();
+            if (purchasedAt <= 0) continue;
+
+            String historyDocId = userId + "_" + p.getPackageKey() + "_" + purchasedAt + "_purchased";
+            Map<String, Object> history = new HashMap<>();
+            history.put("userId", userId);
+            history.put("packageKey", p.getPackageKey());
+            history.put("purchasedAt", purchasedAt);
+            history.put("expiresAt", p.getExpiresAt());
+            history.put("planMonths", p.getPlanMonths());
+            history.put("price", p.getPrice());
+            history.put("paymentMethod", p.getPaymentMethod());
+            history.put("phoneNumberMasked", p.getPhoneNumberMasked());
+            history.put("status", "purchased");
+            history.put("canceledAt", p.getCanceledAt());
+            firestore.collection("package_purchase_history").document(historyDocId).set(history);
+        }
+    }
+
+    private void startPurchaseHistoryListener() {
+        if (purchaseHistoryListener != null) {
+            purchaseHistoryListener.remove();
+            purchaseHistoryListener = null;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            purchaseHistory.clear();
+            if (purchaseHistoryAdapter != null) purchaseHistoryAdapter.notifyDataSetChanged();
+            if (tvPurchaseHistoryEmpty != null) tvPurchaseHistoryEmpty.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        purchaseHistoryListener = firestore.collection("package_purchase_history")
+                .whereEqualTo("userId", user.getUid())
+                .addSnapshotListener((snap, err) -> {
+                    if (!isAdded() || snap == null || err != null) return;
+
+                    purchaseHistory.clear();
+                    for (DocumentSnapshot doc : snap.getDocuments()) {
+                        PurchaseHistoryRecord r = doc.toObject(PurchaseHistoryRecord.class);
+                        if (r == null) continue;
+                        purchaseHistory.add(r);
+                    }
+
+                    Collections.sort(purchaseHistory, Comparator.comparingLong(PurchaseHistoryRecord::getPurchasedAt).reversed());
+                    if (purchaseHistoryAdapter != null) purchaseHistoryAdapter.notifyDataSetChanged();
+                    if (tvPurchaseHistoryEmpty != null) {
+                        tvPurchaseHistoryEmpty.setVisibility(purchaseHistory.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
+                });
+    }
+
+    private void showStopPurchaseDialog(PackagePurchase purchase) {
+        if (!isAdded() || getContext() == null) return;
+        if (purchase == null || purchase.getPackageKey() == null) return;
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Stop Package")
+                .setMessage("Do you want to unsubscribe and stop this package now?")
+                .setPositiveButton("Stop", (dialog, which) -> stopPurchase(purchase))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void stopPurchase(PackagePurchase purchase) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        if (purchase == null || purchase.getPackageKey() == null) return;
+        String packageKey = purchase.getPackageKey();
+        long now = System.currentTimeMillis();
+        String docId = user.getUid() + "_" + packageKey;
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("expiresAt", now);
+        updates.put("canceledAt", now);
+        updates.put("status", "canceled");
+
+        firestore.collection("package_purchases").document(docId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Map<String, Object> history = new HashMap<>();
+                    history.put("userId", user.getUid());
+                    history.put("packageKey", packageKey);
+                    history.put("purchasedAt", purchase.getPurchasedAt());
+                    history.put("expiresAt", now);
+                    history.put("planMonths", purchase.getPlanMonths());
+                    history.put("price", purchase.getPrice());
+                    history.put("paymentMethod", purchase.getPaymentMethod());
+                    history.put("phoneNumberMasked", purchase.getPhoneNumberMasked());
+                    history.put("status", "canceled");
+                    history.put("canceledAt", now);
+                    String historyDocId = user.getUid() + "_" + packageKey + "_" + now + "_canceled";
+                    firestore.collection("package_purchase_history").document(historyDocId).set(history);
+
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Package stopped", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Failed to stop: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void uploadProfilePicture(Uri uri) {

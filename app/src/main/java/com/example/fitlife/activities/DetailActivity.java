@@ -1,35 +1,28 @@
 package com.example.fitlife.activities;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.telephony.SmsManager;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import com.example.fitlife.R;
 import com.example.fitlife.models.Workout;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DetailActivity extends AppCompatActivity {
 
-    private static final int SMS_PERMISSION_CODE = 101;
     private TextView detailTitle, tvDetailExercises, tvDetailEquipment, tvDetailInstructions, tvDetailDuration;
-    private Button btnCompleteDetail, btnEditDetail, btnDeleteDetail, btnSendSMS;
-    private LinearLayout smsInputLayout;
-    private EditText etPhoneNumber;
-    private ImageButton btnSendNow;
+    private Button btnCompleteDetail, btnEditDetail, btnDeleteDetail, btnSendEmail;
     private ImageView ivBack;
     private FirebaseFirestore firestore;
     private String workoutDocId;
@@ -58,21 +51,12 @@ public class DetailActivity extends AppCompatActivity {
 
         btnDeleteDetail.setOnClickListener(v -> showDeleteConfirmationFirestore());
 
-        btnSendSMS.setOnClickListener(v -> {
-            if (smsInputLayout.getVisibility() == View.VISIBLE) {
-                smsInputLayout.setVisibility(View.GONE);
-            } else {
-                smsInputLayout.setVisibility(View.VISIBLE);
-                etPhoneNumber.requestFocus();
+        btnSendEmail.setOnClickListener(v -> {
+            if (workout == null) {
+                Toast.makeText(this, "Workout not loaded yet", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
-
-        btnSendNow.setOnClickListener(v -> {
-            if (checkSmsPermission()) {
-                sendWorkoutSMS();
-            } else {
-                requestSmsPermission();
-            }
+            showEmailShareDialog();
         });
     }
 
@@ -80,6 +64,11 @@ public class DetailActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadWorkoutFromFirestore(); // Refresh data if edited
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void initViews() {
@@ -91,54 +80,127 @@ public class DetailActivity extends AppCompatActivity {
         btnCompleteDetail = findViewById(R.id.btnCompleteDetail);
         btnEditDetail = findViewById(R.id.btnEditDetail);
         btnDeleteDetail = findViewById(R.id.btnDeleteDetail);
-        btnSendSMS = findViewById(R.id.btnSendSMS);
-        smsInputLayout = findViewById(R.id.smsInputLayout);
-        etPhoneNumber = findViewById(R.id.etPhoneNumber);
-        btnSendNow = findViewById(R.id.btnSendNow);
+        btnSendEmail = findViewById(R.id.btnSendEmail);
         ivBack = findViewById(R.id.ivBack);
     }
 
-    private boolean checkSmsPermission() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
-    }
+    private void showEmailShareDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_email_share, null, false);
+        RadioGroup rgFormat = view.findViewById(R.id.rgFormat);
+        android.widget.CheckBox cbEquipment = view.findViewById(R.id.cbEquipment);
+        android.widget.CheckBox cbInstructions = view.findViewById(R.id.cbInstructions);
+        android.widget.CheckBox cbDuration = view.findViewById(R.id.cbDuration);
+        EditText etEmail = view.findViewById(R.id.etEmail);
 
-    private void requestSmsPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, SMS_PERMISSION_CODE);
-    }
+        rgFormat.check(R.id.rbText);
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == SMS_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                sendWorkoutSMS();
-            } else {
-                Toast.makeText(this, "Permission denied to send SMS", Toast.LENGTH_SHORT).show();
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Send Workout Plan")
+                .setView(view)
+                .setPositiveButton("Send", null)
+                .setNegativeButton("Cancel", null)
+                .create();
+
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            int checked = rgFormat.getCheckedRadioButtonId();
+            boolean checklist = checked == R.id.rbChecklist;
+
+            String recipient = etEmail.getText().toString().trim();
+            if (!recipient.isEmpty() && !isValidEmail(recipient)) {
+                etEmail.setError("Valid email required");
+                return;
             }
-        }
+            String subject = "Workout Plan: " + safe(workout.getTitle());
+            String body = buildWorkoutText(checklist, cbEquipment.isChecked(), cbInstructions.isChecked(), cbDuration.isChecked());
+            openGmailCompose(recipient, subject, body);
+            dialog.dismiss();
+        }));
+
+        dialog.show();
     }
 
-    private void sendWorkoutSMS() {
-        String phone = etPhoneNumber.getText().toString().trim();
-        if (phone.isEmpty()) {
-            etPhoneNumber.setError("Phone number required");
+    private void openGmailCompose(String recipient, String subject, String body) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        if (recipient != null && !recipient.trim().isEmpty()) {
+            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{recipient.trim()});
+        }
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+
+        Intent gmailIntent = new Intent(intent);
+        gmailIntent.setPackage("com.google.android.gm");
+        if (gmailIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(gmailIntent);
             return;
         }
 
-        String fullNumber = "+95" + phone;
-        String message = "Workout: " + workout.getTitle() + "\n" +
-                "Exercises: " + workout.getExercises() + "\n" +
-                "Instructions: " + workout.getInstructions();
-
-        try {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(fullNumber, null, message, null, null);
-            Toast.makeText(this, "Workout sent to " + fullNumber, Toast.LENGTH_SHORT).show();
-            smsInputLayout.setVisibility(View.GONE);
-            etPhoneNumber.setText("");
-        } catch (Exception e) {
-            Toast.makeText(this, "Failed to send SMS: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(Intent.createChooser(intent, "Send email"));
+        } else {
+            Toast.makeText(this, "No email app found. Please install Gmail.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private boolean isValidEmail(String email) {
+        if (email == null) return false;
+        String e = email.trim();
+        if (e.isEmpty()) return false;
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(e).matches();
+    }
+
+    private String buildWorkoutText(boolean checklist, boolean includeEquipment, boolean includeInstructions, boolean includeDuration) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Workout: ").append(safe(workout.getTitle())).append("\n");
+        if (includeDuration) {
+            sb.append("Duration: ").append(workout.getDuration()).append(" mins").append("\n");
+        }
+        sb.append("\n");
+
+        String exercises = safe(workout.getExercises());
+        if (!exercises.isEmpty()) {
+            sb.append("Exercises:\n");
+            if (checklist) {
+                for (String line : splitExercises(exercises)) {
+                    sb.append("- [ ] ").append(line).append("\n");
+                }
+            } else {
+                sb.append(exercises).append("\n");
+            }
+            sb.append("\n");
+        }
+
+        if (includeEquipment) {
+            String equipment = safe(workout.getEquipment());
+            if (!equipment.isEmpty()) {
+                sb.append("Equipment:\n").append(equipment).append("\n\n");
+            }
+        }
+
+        if (includeInstructions) {
+            String instructions = safe(workout.getInstructions());
+            if (!instructions.isEmpty()) {
+                sb.append("Instructions:\n").append(instructions).append("\n");
+            }
+        }
+
+        return sb.toString().trim();
+    }
+
+    private List<String> splitExercises(String exercises) {
+        List<String> out = new ArrayList<>();
+        for (String part : exercises.split("\\r?\\n|,")) {
+            String s = part.trim();
+            if (!s.isEmpty()) out.add(s);
+        }
+        if (out.isEmpty()) {
+            out.add(exercises.trim());
+        }
+        return out;
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private void loadWorkoutFromFirestore() {

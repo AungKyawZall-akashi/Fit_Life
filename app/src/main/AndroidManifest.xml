@@ -2,8 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.SEND_SMS" />
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -33,6 +31,8 @@
         <activity android:name=".activities.PlanItemsActivity" />
         <activity android:name=".activities.PlanItemDetailActivity" />
         <activity android:name=".activities.PackagePurchaseActivity" />
+        <activity android:name=".activities.DietPlanOptionsActivity" />
+        <activity android:name=".activities.PersonalDietPlanActivity" />
 
     </application>
 

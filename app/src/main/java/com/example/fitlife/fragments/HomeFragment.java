@@ -47,6 +47,7 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
 
     private RecyclerView rvWorkouts;
     private TextView tvEmptyState, tvAddWorkout, tvWelcomeName;
+    private TextView tvGreeting;
     private TextView tvStatsPercent, tvStatsCount;
     private ProgressBar pbStats;
     private WorkoutAdapter adapter;
@@ -81,6 +82,7 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
         tvAddWorkout = view.findViewById(R.id.tvAddWorkout);
         tvWelcomeName = view.findViewById(R.id.tvWelcomeName);
+        tvGreeting = view.findViewById(R.id.tvGreeting);
 
         rvPackages = view.findViewById(R.id.rvPackages);
         rvRoutines = view.findViewById(R.id.rvRoutines);
@@ -100,6 +102,7 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         setupPlanSections();
         loadUserProfile();
         ensureDefaultPackages();
+        updateGreeting();
         startWorkoutListener(); // Start listening for real-time updates
         startPlanItemsListener();
 
@@ -132,6 +135,24 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         super.onResume();
         filterWorkoutsToToday();
         checkEmptyState();
+        updateGreeting();
+    }
+
+    private void updateGreeting() {
+        if (tvGreeting == null) return;
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
+        String greeting;
+        if (hour >= 5 && hour < 12) {
+            greeting = "Good Morning";
+        } else if (hour >= 12 && hour < 17) {
+            greeting = "Good Afternoon";
+        } else if (hour >= 17 && hour < 21) {
+            greeting = "Good Evening";
+        } else {
+            greeting = "Good Night";
+        }
+        tvGreeting.setText(greeting);
     }
 
     private void startWorkoutListener() {
@@ -377,9 +398,14 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
             public void onItemClick(PlanItem item) {
                 if (getContext() == null) return;
                 if (item.getKey() != null) {
-                    Intent intent = new Intent(getContext(), PlanItemDetailActivity.class);
-                    intent.putExtra(PlanItemDetailActivity.EXTRA_PACKAGE_KEY, item.getKey());
-                    startActivity(intent);
+                    if ("diet_plan".equalsIgnoreCase(item.getKey())) {
+                        Intent intent = new Intent(getContext(), com.example.fitlife.activities.DietPlanOptionsActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(getContext(), PlanItemDetailActivity.class);
+                        intent.putExtra(PlanItemDetailActivity.EXTRA_PACKAGE_KEY, item.getKey());
+                        startActivity(intent);
+                    }
                 }
             }
 

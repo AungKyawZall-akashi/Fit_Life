@@ -86,9 +86,14 @@ public class PlanItemsActivity extends AppCompatActivity {
                         showBuyDialog(key);
                         return;
                     }
-                    Intent intent = new Intent(PlanItemsActivity.this, PlanItemDetailActivity.class);
-                    intent.putExtra(PlanItemDetailActivity.EXTRA_PACKAGE_KEY, key);
-                    startActivity(intent);
+                    if ("diet_plan".equalsIgnoreCase(key)) {
+                        Intent intent = new Intent(PlanItemsActivity.this, DietPlanOptionsActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(PlanItemsActivity.this, PlanItemDetailActivity.class);
+                        intent.putExtra(PlanItemDetailActivity.EXTRA_PACKAGE_KEY, key);
+                        startActivity(intent);
+                    }
                     return;
                 }
 

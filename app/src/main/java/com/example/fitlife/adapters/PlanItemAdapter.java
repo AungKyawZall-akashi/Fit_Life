@@ -115,7 +115,7 @@ public class PlanItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         String key = item.getKey() != null ? item.getKey() : "";
         int iconRes;
         if ("diet_plan".equalsIgnoreCase(key)) {
-            iconRes = R.drawable.ic_notifications;
+            iconRes = R.drawable.ic_diet;
         } else if ("gym".equalsIgnoreCase(key)) {
             iconRes = R.drawable.ic_weights;
         } else if ("yoga".equalsIgnoreCase(key)) {
