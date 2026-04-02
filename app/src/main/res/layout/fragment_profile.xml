@@ -45,13 +45,36 @@
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/accent_orange">
 
-                <ImageView
-                    android:id="@+id/ivProfilePicture"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="24dp"
-                    android:src="@drawable/ic_profile"
-                    app:tint="@color/white" />
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/ivProfilePicture"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="24dp"
+                        android:src="@drawable/ic_profile"
+                        app:tint="@color/white" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnUploadProfilePicture"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="bottom|end"
+                        android:layout_margin="6dp"
+                        app:cardCornerRadius="18dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/accent_orange">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="8dp"
+                            android:src="@android:drawable/ic_menu_camera"
+                            app:tint="@color/white" />
+                    </androidx.cardview.widget.CardView>
+                </FrameLayout>
             </androidx.cardview.widget.CardView>
 
             <TextView

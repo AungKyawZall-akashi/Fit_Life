@@ -26,7 +26,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fitlife.R;
 import com.example.fitlife.activities.AddWorkoutActivity;
 import com.example.fitlife.activities.DetailActivity;
+import com.example.fitlife.activities.PlanItemsActivity;
+import com.example.fitlife.activities.PlanItemDetailActivity;
+import com.example.fitlife.models.PlanEntry;
+import com.example.fitlife.adapters.PlanItemAdapter;
 import com.example.fitlife.adapters.WorkoutAdapter;
+import com.example.fitlife.models.PackagePurchase;
+import com.example.fitlife.models.PlanItem;
 import com.example.fitlife.models.Workout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -45,9 +51,23 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
     private ProgressBar pbStats;
     private WorkoutAdapter adapter;
     private List<Workout> workoutList;
+
+    private RecyclerView rvPackages;
+    private RecyclerView rvRoutines;
+    private TextView tvManagePackages;
+    private TextView tvManageRoutines;
+    private TextView tvPackagesEmpty;
+    private TextView tvRoutinesEmpty;
+    private final List<PlanItem> packageItems = new ArrayList<>();
+    private final List<PlanItem> routineItems = new ArrayList<>();
+    private PlanItemAdapter packagesAdapter;
+    private PlanItemAdapter routinesAdapter;
+
     private FirebaseFirestore firestore;
     private FirebaseAuth mAuth;
     private ListenerRegistration workoutListener;
+    private ListenerRegistration planItemsListener;
+    private ListenerRegistration purchasesListener;
 
     @Nullable
     @Override
@@ -61,6 +81,13 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
         tvAddWorkout = view.findViewById(R.id.tvAddWorkout);
         tvWelcomeName = view.findViewById(R.id.tvWelcomeName);
+
+        rvPackages = view.findViewById(R.id.rvPackages);
+        rvRoutines = view.findViewById(R.id.rvRoutines);
+        tvManagePackages = view.findViewById(R.id.tvManagePackages);
+        tvManageRoutines = view.findViewById(R.id.tvManageRoutines);
+        tvPackagesEmpty = view.findViewById(R.id.tvPackagesEmpty);
+        tvRoutinesEmpty = view.findViewById(R.id.tvRoutinesEmpty);
         
         // Stats views
         pbStats = view.findViewById(R.id.pbStats);
@@ -70,8 +97,11 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         workoutList = new ArrayList<>();
         setupRecyclerView();
         setupSwipeGestures();
+        setupPlanSections();
         loadUserProfile();
+        ensureDefaultPackages();
         startWorkoutListener(); // Start listening for real-time updates
+        startPlanItemsListener();
 
         tvAddWorkout.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), AddWorkoutActivity.class);
@@ -86,6 +116,14 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         super.onDestroyView();
         if (workoutListener != null) {
             workoutListener.remove();
+        }
+        if (planItemsListener != null) {
+            planItemsListener.remove();
+            planItemsListener = null;
+        }
+        if (purchasesListener != null) {
+            purchasesListener.remove();
+            purchasesListener = null;
         }
     }
 
@@ -331,6 +369,215 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         adapter = new WorkoutAdapter(workoutList, this);
         rvWorkouts.setLayoutManager(new LinearLayoutManager(getContext()));
         rvWorkouts.setAdapter(adapter);
+    }
+
+    private void setupPlanSections() {
+        packagesAdapter = new PlanItemAdapter(packageItems, new PlanItemAdapter.Listener() {
+            @Override
+            public void onItemClick(PlanItem item) {
+                if (getContext() == null) return;
+                if (item.getKey() != null) {
+                    Intent intent = new Intent(getContext(), PlanItemDetailActivity.class);
+                    intent.putExtra(PlanItemDetailActivity.EXTRA_PACKAGE_KEY, item.getKey());
+                    startActivity(intent);
+                }
+            }
+
+            @Override
+            public void onItemLongClick(PlanItem item) {
+            }
+
+            @Override
+            public void onToggleAdded(PlanItem item, boolean added) {
+            }
+        }, false);
+
+        routinesAdapter = new PlanItemAdapter(routineItems, new PlanItemAdapter.Listener() {
+            @Override
+            public void onItemClick(PlanItem item) {
+                if (getContext() == null) return;
+                if (item.getDocumentId() == null) return;
+                Intent intent = new Intent(getContext(), PlanItemsActivity.class);
+                intent.putExtra(PlanItemsActivity.EXTRA_TYPE, "routine");
+                startActivity(intent);
+            }
+
+            @Override
+            public void onItemLongClick(PlanItem item) {
+            }
+
+            @Override
+            public void onToggleAdded(PlanItem item, boolean added) {
+            }
+        }, false);
+
+        if (rvPackages != null) {
+            rvPackages.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvPackages.setAdapter(packagesAdapter);
+        }
+        if (rvRoutines != null) {
+            rvRoutines.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvRoutines.setAdapter(routinesAdapter);
+        }
+
+        if (tvManagePackages != null) {
+            tvManagePackages.setOnClickListener(v -> {
+                if (getContext() == null) return;
+                Intent intent = new Intent(getContext(), PlanItemsActivity.class);
+                intent.putExtra(PlanItemsActivity.EXTRA_TYPE, "package");
+                startActivity(intent);
+            });
+        }
+        if (tvManageRoutines != null) {
+            tvManageRoutines.setOnClickListener(v -> {
+                if (getContext() == null) return;
+                Intent intent = new Intent(getContext(), PlanItemsActivity.class);
+                intent.putExtra(PlanItemsActivity.EXTRA_TYPE, "routine");
+                startActivity(intent);
+            });
+        }
+    }
+
+    private void startPlanItemsListener() {
+        String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "anonymous";
+
+        planItemsListener = firestore.collection("plan_items")
+                .whereEqualTo("userId", userId)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null || value == null) return;
+
+                    // Packages are handled by purchasesListener; only maintain routines here
+                    routineItems.clear();
+
+                    for (QueryDocumentSnapshot doc : value) {
+                        PlanItem item = doc.toObject(PlanItem.class);
+                        if (item == null) continue;
+                        item.setDocumentId(doc.getId());
+                        if (!item.isAddedToWeeklyPlan()) continue;
+
+                        if ("routine".equalsIgnoreCase(item.getType())) {
+                            routineItems.add(item);
+                        }
+                    }
+
+                    // Only routines adapter updates here
+                    if (routinesAdapter != null) routinesAdapter.notifyDataSetChanged();
+
+                    if (tvRoutinesEmpty != null) {
+                        tvRoutinesEmpty.setVisibility(routineItems.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
+                });
+    }
+
+    private void ensureDefaultPackages() {
+        startPurchasesListener();
+    }
+
+    private void startPurchasesListener() {
+        if (purchasesListener != null) {
+            purchasesListener.remove();
+            purchasesListener = null;
+        }
+
+        String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "anonymous";
+        purchasesListener = firestore.collection("package_purchases")
+                .whereEqualTo("userId", userId)
+                .addSnapshotListener((snap, err) -> {
+                    if (err != null || snap == null) return;
+
+                    long now = System.currentTimeMillis();
+                    packageItems.clear();
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : snap.getDocuments()) {
+                        PackagePurchase p = doc.toObject(PackagePurchase.class);
+                        if (p == null) continue;
+                        if (p.getPackageKey() == null) continue;
+                        if (p.getExpiresAt() <= now) continue;
+
+                        PlanItem item;
+                        if ("diet_plan".equalsIgnoreCase(p.getPackageKey())) {
+                            item = buildDietPlan(userId);
+                            item.setKey("diet_plan");
+                            item.setDocumentId(userId + "_package_diet_plan");
+                        } else if ("gym".equalsIgnoreCase(p.getPackageKey())) {
+                            item = buildGymPlan(userId);
+                            item.setKey("gym");
+                            item.setDocumentId(userId + "_package_gym");
+                        } else if ("yoga".equalsIgnoreCase(p.getPackageKey())) {
+                            item = buildYogaPlan(userId);
+                            item.setKey("yoga");
+                            item.setDocumentId(userId + "_package_yoga");
+                        } else {
+                            continue;
+                        }
+
+                        item.setType("package");
+                        item.setPurchased(true);
+                        item.setExpiresAt(p.getExpiresAt());
+                        packageItems.add(item);
+                    }
+
+                    if (packagesAdapter != null) packagesAdapter.notifyDataSetChanged();
+                    if (tvPackagesEmpty != null) {
+                        tvPackagesEmpty.setVisibility(packageItems.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
+                });
+    }
+
+    private PlanItem buildDietPlan(String userId) {
+        PlanItem item = new PlanItem();
+        item.setUserId(userId);
+        item.setType("package");
+        item.setTitle("Diet Plan");
+        item.setNotes("Simple daily nutrition plan");
+        item.setCreatedAt(System.currentTimeMillis());
+
+        List<PlanEntry> entries = new ArrayList<>();
+        entries.add(new PlanEntry("Breakfast", "Oats or eggs + fruit. Drink 1 glass of water."));
+        entries.add(new PlanEntry("Lunch", "Lean protein + rice/potato + vegetables. Avoid sugary drinks."));
+        entries.add(new PlanEntry("Snack", "Nuts or yogurt. Keep portion small."));
+        entries.add(new PlanEntry("Dinner", "Light meal: vegetables + protein. Stop eating 2 hours before sleep."));
+        entries.add(new PlanEntry("Hydration", "Drink 6-8 glasses of water across the day."));
+        item.setEntries(entries);
+        return item;
+    }
+
+    private PlanItem buildGymPlan(String userId) {
+        PlanItem item = new PlanItem();
+        item.setUserId(userId);
+        item.setType("package");
+        item.setTitle("Gym");
+        item.setNotes("Beginner full-body routine");
+        item.setCreatedAt(System.currentTimeMillis());
+
+        List<PlanEntry> entries = new ArrayList<>();
+        entries.add(new PlanEntry("Warm-up (5-10 min)", "Brisk walk + dynamic stretches."));
+        entries.add(new PlanEntry("Squats (3x10)", "Keep back straight, go to comfortable depth."));
+        entries.add(new PlanEntry("Push-ups (3x8-12)", "Knees down if needed, control the movement."));
+        entries.add(new PlanEntry("Rows (3x10)", "Use dumbbells/band, squeeze shoulder blades."));
+        entries.add(new PlanEntry("Plank (3x30-45s)", "Keep core tight, avoid sagging."));
+        entries.add(new PlanEntry("Cool down", "Slow walk + stretching 5 minutes."));
+        item.setEntries(entries);
+        return item;
+    }
+
+    private PlanItem buildYogaPlan(String userId) {
+        PlanItem item = new PlanItem();
+        item.setUserId(userId);
+        item.setType("package");
+        item.setTitle("Yoga");
+        item.setNotes("Daily flexibility & breathing");
+        item.setCreatedAt(System.currentTimeMillis());
+
+        List<PlanEntry> entries = new ArrayList<>();
+        entries.add(new PlanEntry("Breathing (2 min)", "Inhale 4s, exhale 6s. Relax shoulders."));
+        entries.add(new PlanEntry("Sun Salutation (3 rounds)", "Move slowly, keep steady breathing."));
+        entries.add(new PlanEntry("Warrior I/II (2x each side)", "Stack knee over ankle, open chest."));
+        entries.add(new PlanEntry("Triangle Pose (2x each side)", "Lengthen spine, avoid collapsing."));
+        entries.add(new PlanEntry("Seated Forward Fold (2 min)", "Hinge at hips, keep knees soft."));
+        entries.add(new PlanEntry("Savasana (2-3 min)", "Lie down, fully relax body."));
+        item.setEntries(entries);
+        return item;
     }
 
     @Override

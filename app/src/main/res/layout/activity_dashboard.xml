@@ -32,3 +32,4 @@
         app:itemBackground="@drawable/nav_item_bg_selector" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+

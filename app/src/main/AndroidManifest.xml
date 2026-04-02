@@ -30,6 +30,9 @@
         <activity android:name=".activities.AddWorkoutActivity" />
         <activity android:name=".activities.DetailActivity" />
         <activity android:name=".activities.DayDetailActivity" />
+        <activity android:name=".activities.PlanItemsActivity" />
+        <activity android:name=".activities.PlanItemDetailActivity" />
+        <activity android:name=".activities.PackagePurchaseActivity" />
 
     </application>
 

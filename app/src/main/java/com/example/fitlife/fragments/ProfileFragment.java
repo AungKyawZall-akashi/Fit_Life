@@ -3,6 +3,9 @@ package com.example.fitlife.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +16,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -26,6 +31,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,8 +43,10 @@ public class ProfileFragment extends Fragment {
     private Button btnLogout;
     private View rlEditProfile;
     private SwitchCompat switchProfileTheme;
+    private View btnUploadProfilePicture;
     private FirebaseAuth mAuth;
     private FirebaseFirestore firestore;
+    private ActivityResultLauncher<String> pickImageLauncher;
 
     @Nullable
     @Override
@@ -54,12 +63,23 @@ public class ProfileFragment extends Fragment {
         btnLogout = view.findViewById(R.id.btnLogout);
         rlEditProfile = view.findViewById(R.id.rlEditProfile);
         switchProfileTheme = view.findViewById(R.id.switchProfileTheme);
+        btnUploadProfilePicture = view.findViewById(R.id.btnUploadProfilePicture);
+
+        pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+            if (uri != null) {
+                uploadProfilePicture(uri);
+            }
+        });
 
         loadUserProfile();
         setupThemeSwitch();
 
         rlEditProfile.setOnClickListener(v -> showEditProfileDialog());
         btnLogout.setOnClickListener(v -> showLogoutConfirmation());
+        ivProfilePicture.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
+        if (btnUploadProfilePicture != null) {
+            btnUploadProfilePicture.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
+        }
 
         return view;
     }
@@ -160,11 +180,100 @@ public class ProfileFragment extends Fragment {
                                     } else {
                                         tvProfileDOB.setText("Not Set");
                                     }
+                                    showProfileImage(userModel.getProfileImageUrl());
                                 }
                             }
                         }
                     });
         }
+    }
+
+    private void uploadProfilePicture(Uri uri) {
+        if (getContext() == null) return;
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+
+        applyProfileImage(uri);
+
+        StorageReference ref = FirebaseStorage.getInstance()
+                .getReference()
+                .child("profile_images")
+                .child(user.getUid() + ".jpg");
+
+        ref.putFile(uri)
+                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl()
+                        .addOnSuccessListener(downloadUri -> {
+                            Map<String, Object> updates = new HashMap<>();
+                            updates.put("profileImageUrl", downloadUri.toString());
+                            firestore.collection("users").document(user.getUid())
+                                    .update(updates)
+                                    .addOnSuccessListener(aVoid -> {
+                                        if (isAdded()) {
+                                            Toast.makeText(getContext(), "Profile picture updated", Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        if (isAdded()) {
+                                            Toast.makeText(getContext(), "Failed to save profile picture: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        })
+                        .addOnFailureListener(e -> {
+                            if (isAdded()) {
+                                Toast.makeText(getContext(), "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }))
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void showProfileImage(String profileImageUrl) {
+        if (!isAdded() || getContext() == null) return;
+        if (profileImageUrl == null || profileImageUrl.trim().isEmpty()) {
+            applyDefaultProfileIcon();
+            return;
+        }
+
+        try {
+            StorageReference ref = FirebaseStorage.getInstance().getReferenceFromUrl(profileImageUrl);
+            long maxBytes = 2L * 1024L * 1024L;
+            ref.getBytes(maxBytes)
+                    .addOnSuccessListener(bytes -> {
+                        if (!isAdded()) return;
+                        ivProfilePicture.setImageTintList(null);
+                        ivProfilePicture.setPadding(0, 0, 0, 0);
+                        ivProfilePicture.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        ivProfilePicture.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+                    })
+                    .addOnFailureListener(e -> {
+                        if (isAdded()) {
+                            applyDefaultProfileIcon();
+                        }
+                    });
+        } catch (Exception e) {
+            applyDefaultProfileIcon();
+        }
+    }
+
+    private void applyProfileImage(Uri uri) {
+        if (!isAdded()) return;
+        ivProfilePicture.setImageTintList(null);
+        ivProfilePicture.setPadding(0, 0, 0, 0);
+        ivProfilePicture.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        ivProfilePicture.setImageURI(uri);
+    }
+
+    private void applyDefaultProfileIcon() {
+        if (!isAdded() || getContext() == null) return;
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        ivProfilePicture.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        ivProfilePicture.setPadding(padding, padding, padding, padding);
+        ivProfilePicture.setImageResource(R.drawable.ic_profile);
+        ivProfilePicture.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.white)));
     }
 
     private void showLogoutConfirmation() {
