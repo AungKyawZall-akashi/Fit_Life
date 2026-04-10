@@ -36,6 +36,7 @@ import com.example.fitlife.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.storage.FirebaseStorage;
@@ -112,11 +113,49 @@ public class ProfileFragment extends Fragment {
         rlEditProfile.setOnClickListener(v -> showEditProfileDialog());
         btnLogout.setOnClickListener(v -> showLogoutConfirmation());
         ivProfilePicture.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
+        ivProfilePicture.setOnLongClickListener(v -> {
+            showRemoveProfilePictureDialog();
+            return true;
+        });
         if (btnUploadProfilePicture != null) {
             btnUploadProfilePicture.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
         }
 
         return view;
+    }
+
+    private void showRemoveProfilePictureDialog() {
+        if (!isAdded() || getContext() == null) return;
+        new AlertDialog.Builder(getContext())
+                .setTitle("Remove Profile Picture")
+                .setMessage("Do you want to remove your profile picture?")
+                .setPositiveButton("Remove", (dialog, which) -> removeProfilePicture())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void removeProfilePicture() {
+        if (!isAdded() || getContext() == null) return;
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+
+        applyDefaultProfileIcon();
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("profileImageUrl", FieldValue.delete());
+        firestore.collection("users").document(user.getUid())
+                .update(updates)
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        FirebaseStorage.getInstance()
+                .getReference()
+                .child("profile_images")
+                .child(user.getUid() + ".jpg")
+                .delete();
     }
 
     @Override

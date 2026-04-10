@@ -126,6 +126,90 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif-black"
+            android:text="BMI Calculator"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/card_background">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/etBmiHeightCm"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/input_bg"
+                        android:backgroundTint="@color/card_background"
+                        android:hint="Height (cm)"
+                        android:inputType="numberDecimal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary" />
+
+                    <Space
+                        android:layout_width="12dp"
+                        android:layout_height="0dp" />
+
+                    <EditText
+                        android:id="@+id/etBmiWeightKg"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/input_bg"
+                        android:backgroundTint="@color/card_background"
+                        android:hint="Weight (kg)"
+                        android:inputType="numberDecimal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnCalculateBmi"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/button_bg"
+                    android:text="Calculate BMI"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tvBmiResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Enter your height and weight to calculate."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- My Workouts Section -->
         <RelativeLayout
             android:layout_width="match_parent"

@@ -9,9 +9,13 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,6 +54,9 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
     private TextView tvGreeting;
     private TextView tvStatsPercent, tvStatsCount;
     private ProgressBar pbStats;
+    private EditText etBmiHeightCm, etBmiWeightKg;
+    private Button btnCalculateBmi;
+    private TextView tvBmiResult;
     private WorkoutAdapter adapter;
     private List<Workout> workoutList;
 
@@ -69,6 +76,7 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
     private ListenerRegistration workoutListener;
     private ListenerRegistration planItemsListener;
     private ListenerRegistration purchasesListener;
+    private GestureDetector gestureDetector;
 
     @Nullable
     @Override
@@ -77,6 +85,21 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
 
         firestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+
+        gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(@NonNull MotionEvent e) {
+                if (!isAdded()) return false;
+                view.post(() -> view.scrollTo(0, 0));
+                return true;
+            }
+        });
+        view.setOnTouchListener((v, event) -> {
+            if (gestureDetector != null) {
+                gestureDetector.onTouchEvent(event);
+            }
+            return false;
+        });
 
         rvWorkouts = view.findViewById(R.id.rvWorkouts);
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
@@ -96,6 +119,11 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
         tvStatsPercent = view.findViewById(R.id.tvStatsPercent);
         tvStatsCount = view.findViewById(R.id.tvStatsCount);
 
+        etBmiHeightCm = view.findViewById(R.id.etBmiHeightCm);
+        etBmiWeightKg = view.findViewById(R.id.etBmiWeightKg);
+        btnCalculateBmi = view.findViewById(R.id.btnCalculateBmi);
+        tvBmiResult = view.findViewById(R.id.tvBmiResult);
+
         workoutList = new ArrayList<>();
         setupRecyclerView();
         setupSwipeGestures();
@@ -110,6 +138,10 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
             Intent intent = new Intent(getActivity(), AddWorkoutActivity.class);
             startActivity(intent);
         });
+
+        if (btnCalculateBmi != null) {
+            btnCalculateBmi.setOnClickListener(v -> calculateAndShowBmi());
+        }
 
         return view;
     }
@@ -153,6 +185,67 @@ public class HomeFragment extends Fragment implements WorkoutAdapter.OnWorkoutAc
             greeting = "Good Night";
         }
         tvGreeting.setText(greeting);
+    }
+
+    private void calculateAndShowBmi() {
+        if (!isAdded() || getContext() == null) return;
+        if (etBmiHeightCm == null || etBmiWeightKg == null || tvBmiResult == null) return;
+
+        Double heightCm = parseDoubleOrNull(etBmiHeightCm);
+        Double weightKg = parseDoubleOrNull(etBmiWeightKg);
+
+        if (heightCm == null || weightKg == null) {
+            tvBmiResult.setTextColor(getContext().getColor(R.color.text_secondary));
+            tvBmiResult.setText("Please enter both height and weight.");
+            return;
+        }
+
+        if (heightCm <= 0 || weightKg <= 0 || heightCm > 300 || weightKg > 500) {
+            tvBmiResult.setTextColor(getContext().getColor(R.color.text_secondary));
+            tvBmiResult.setText("Please enter valid values.");
+            return;
+        }
+
+        double heightM = heightCm / 100.0;
+        double bmi = weightKg / (heightM * heightM);
+        String bmiText = String.format(java.util.Locale.US, "%.1f", bmi);
+        String category = bmiCategory(bmi);
+
+        String fullText = "BMI: " + bmiText + " (" + category + ")";
+        SpannableString spannable = new SpannableString(fullText);
+        int start = fullText.indexOf("(") + 1;
+        int end = fullText.indexOf(")");
+        if (start > 0 && end > start) {
+            spannable.setSpan(
+                    new ForegroundColorSpan(getContext().getColor(R.color.accent_orange)),
+                    start,
+                    end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+        }
+
+        tvBmiResult.setTextColor(getContext().getColor(R.color.text_primary));
+        tvBmiResult.setText(spannable);
+    }
+
+    @Nullable
+    private Double parseDoubleOrNull(@NonNull EditText editText) {
+        String raw = editText.getText() != null ? editText.getText().toString().trim() : "";
+        if (raw.isEmpty()) return null;
+        raw = raw.replace(',', '.');
+        try {
+            return Double.parseDouble(raw);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    @NonNull
+    private String bmiCategory(double bmi) {
+        if (bmi < 18.5) return "Underweight";
+        if (bmi < 25.0) return "Normal";
+        if (bmi < 30.0) return "Overweight";
+        return "Obese";
     }
 
     private void startWorkoutListener() {

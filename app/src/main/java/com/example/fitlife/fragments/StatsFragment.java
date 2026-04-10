@@ -2,7 +2,9 @@ package com.example.fitlife.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -43,6 +45,7 @@ public class StatsFragment extends Fragment {
     private int currentYear;
     private int currentMonthZeroBased;
     private DayStatsAdapter adapter;
+    private GestureDetector gestureDetector;
 
     @Nullable
     @Override
@@ -68,6 +71,29 @@ public class StatsFragment extends Fragment {
         adapter = new DayStatsAdapter();
         rvMonthlyStats.setLayoutManager(new LinearLayoutManager(getContext()));
         rvMonthlyStats.setAdapter(adapter);
+
+        gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
+                float dx = e2.getX() - e1.getX();
+                float dy = e2.getY() - e1.getY();
+                if (Math.abs(dx) < 120 || Math.abs(dx) < Math.abs(dy)) return false;
+                if (dx < 0) {
+                    moveMonth(1);
+                } else {
+                    moveMonth(-1);
+                }
+                return true;
+            }
+        });
+        View.OnTouchListener touchListener = (v, event) -> {
+            if (gestureDetector != null) {
+                gestureDetector.onTouchEvent(event);
+            }
+            return false;
+        };
+        view.setOnTouchListener(touchListener);
+        rvMonthlyStats.setOnTouchListener(touchListener);
 
         btnPrevMonth.setOnClickListener(v -> moveMonth(-1));
         btnNextMonth.setOnClickListener(v -> moveMonth(1));
