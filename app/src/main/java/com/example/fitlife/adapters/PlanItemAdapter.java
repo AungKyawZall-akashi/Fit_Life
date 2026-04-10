@@ -64,7 +64,7 @@ public class PlanItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     private void bindRoutine(@NonNull RoutineVH holder, @NonNull PlanItem item) {
-        holder.tvTitle.setText(item.getTitle());
+        holder.tvTitle.setText(getDisplayTitle(item));
 
         if (item.getCreatedAt() > 0) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
@@ -106,6 +106,30 @@ public class PlanItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         });
 
         holder.ivIcon.setImageResource(android.R.drawable.ic_menu_my_calendar);
+    }
+
+    @NonNull
+    private String getDisplayTitle(@NonNull PlanItem item) {
+        String title = item.getTitle();
+        if (title != null) {
+            title = title.trim();
+        }
+        if (title != null && !title.isEmpty()) {
+            return title;
+        }
+
+        String key = item.getKey();
+        if (key != null) {
+            key = key.trim();
+        }
+        if (key != null && !key.isEmpty()) {
+            String spaced = key.replace('_', ' ');
+            if (!spaced.isEmpty()) {
+                return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+            }
+        }
+
+        return "Untitled Routine";
     }
 
     private void bindPackage(@NonNull PackageVH holder, @NonNull PlanItem item) {

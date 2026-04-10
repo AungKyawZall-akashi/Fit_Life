@@ -1,0 +1,281 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1850" viewBox="0 0 1800 1850">
+  <defs>
+    <style>
+      .bg { fill:#F0F4F8; }
+      .screen { fill:#F0F4F8; stroke:#111111; stroke-width:2; }
+      .card { fill:#FFFFFF; stroke:#111111; stroke-width:1.5; }
+      .mutedCard { fill:#F0F4F8; stroke:#111111; stroke-width:1.5; }
+      .divider { stroke:#F0F4F8; stroke-width:2; }
+      .btnPrimary { fill:#111111; }
+      .btnSecondary { fill:#FFFFFF; stroke:#111111; stroke-width:1.5; }
+      .chip { fill:#FFFFFF; stroke:#111111; stroke-width:1.25; }
+      .accent { fill:#F97316; }
+      .textPrimary { fill:#111111; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+      .textSecondary { fill:#6B7280; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+      .t32 { font-size:32px; font-weight:800; }
+      .t24 { font-size:24px; font-weight:800; }
+      .t20 { font-size:20px; font-weight:800; }
+      .t18 { font-size:18px; font-weight:800; }
+      .t16b { font-size:16px; font-weight:800; }
+      .t16 { font-size:16px; font-weight:500; }
+      .t14 { font-size:14px; font-weight:500; }
+      .t14b { font-size:14px; font-weight:800; }
+      .t12 { font-size:12px; font-weight:500; }
+      .btnText { fill:#FFFFFF; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size:16px; font-weight:700; }
+      .btnTextDark { fill:#111111; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size:16px; font-weight:700; }
+      .nav { fill:#FFFFFF; stroke:#111111; stroke-width:1.5; }
+      .navIcon { fill:#6B7280; }
+      .navIconActive { fill:#F97316; }
+    </style>
+  </defs>
+
+  <text x="40" y="44" class="textPrimary t20">Fit Life — Wireframe (matches current XML text)</text>
+  <text x="40" y="68" class="textSecondary t12">Screens from app/src/main/res/layout (Main, Login, Register, Dashboard tabs, Add Workout, Workout Details)</text>
+
+  <!-- Common phone frame: 360x760 -->
+  <!-- Row 1 -->
+  <g transform="translate(40,110)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <rect class="card" x="0" y="0" rx="26" ry="26" width="360" height="44" opacity="0.0"/>
+
+    <!-- activity_main.xml -->
+    <rect class="card" x="0" y="0" rx="26" ry="26" width="360" height="760" opacity="0.0"/>
+    <rect class="mutedCard" x="24" y="24" rx="16" ry="16" width="312" height="330"/>
+    <text x="180" y="422" text-anchor="middle" class="textPrimary t24">Track your Active Lifestyle</text>
+    <text x="180" y="452" text-anchor="middle" class="textSecondary t16">Find your way to the perfect body</text>
+    <circle cx="158" cy="504" r="5" class="accent"/>
+    <circle cx="174" cy="504" r="5" class="textPrimary" opacity="0.2"/>
+    <circle cx="190" cy="504" r="5" class="textPrimary" opacity="0.2"/>
+    <circle cx="206" cy="504" r="5" class="textPrimary" opacity="0.2"/>
+    <rect class="btnPrimary" x="24" y="560" rx="16" ry="16" width="312" height="60"/>
+    <text x="180" y="598" text-anchor="middle" class="btnText">Log In</text>
+    <rect class="btnSecondary" x="24" y="636" rx="16" ry="16" width="312" height="60"/>
+    <text x="180" y="674" text-anchor="middle" class="btnTextDark">Sign Up</text>
+    <text x="18" y="22" class="textSecondary t12">MainActivity</text>
+  </g>
+
+  <g transform="translate(430,110)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- activity_login.xml -->
+    <text x="24" y="92" class="textPrimary t32">Welcome Back</text>
+    <text x="24" y="124" class="textSecondary t16">Login to your account</text>
+
+    <rect class="card" x="24" y="172" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="208" class="textSecondary t14">Email Address</text>
+    <rect class="card" x="24" y="248" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="284" class="textSecondary t14">Password</text>
+    <text x="336" y="334" text-anchor="end" class="textPrimary t14b" fill="#F97316">Forgot password?</text>
+
+    <rect class="btnPrimary" x="24" y="360" rx="16" ry="16" width="312" height="60"/>
+    <text x="180" y="398" text-anchor="middle" class="btnText">Login</text>
+
+    <text x="180" y="468" text-anchor="middle" class="textSecondary t14">Don't have an account? Register</text>
+    <text x="18" y="22" class="textSecondary t12">LoginActivity</text>
+  </g>
+
+  <g transform="translate(820,110)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- activity_register.xml -->
+    <text x="24" y="92" class="textPrimary t32">Create Account</text>
+    <text x="24" y="124" class="textSecondary t16">Start your journey with us</text>
+
+    <rect class="card" x="24" y="172" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="208" class="textSecondary t14">Full Name</text>
+    <rect class="card" x="24" y="248" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="284" class="textSecondary t14">Email Address</text>
+    <rect class="card" x="24" y="324" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="360" class="textSecondary t14">Password</text>
+    <rect class="card" x="24" y="400" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="436" class="textSecondary t14">Date of Birth (DD/MM/YYYY)</text>
+
+    <rect class="btnPrimary" x="24" y="492" rx="16" ry="16" width="312" height="60"/>
+    <text x="180" y="530" text-anchor="middle" class="btnText">Register</text>
+
+    <text x="180" y="610" text-anchor="middle" class="textSecondary t14">Already have an account? Login</text>
+    <text x="18" y="22" class="textSecondary t12">RegisterActivity</text>
+  </g>
+
+  <g transform="translate(1210,110)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- activity_add_workout.xml -->
+    <rect class="card" x="24" y="24" rx="14" ry="14" width="48" height="48"/>
+    <text x="48" y="56" text-anchor="middle" class="textSecondary t12">←</text>
+    <text x="24" y="124" class="textPrimary t32">New Workout</text>
+
+    <text x="24" y="182" class="textPrimary t14b">Workout Name</text>
+    <rect class="card" x="24" y="194" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="230" class="textSecondary t14">e.g. Morning Yoga</text>
+
+    <text x="24" y="292" class="textPrimary t14b">Exercises (Optional)</text>
+    <rect class="card" x="24" y="304" rx="16" ry="16" width="312" height="90"/>
+    <text x="40" y="338" class="textSecondary t14">List exercises here...</text>
+
+    <text x="24" y="432" class="textPrimary t14b">Equipment Needed</text>
+    <rect class="card" x="24" y="444" rx="16" ry="16" width="312" height="60"/>
+    <text x="40" y="480" class="textSecondary t14">e.g. Yoga Mat, Dumbbells</text>
+
+    <rect class="btnPrimary" x="24" y="676" rx="16" ry="16" width="312" height="60"/>
+    <text x="180" y="714" text-anchor="middle" class="btnText">Save Workout</text>
+    <text x="18" y="22" class="textSecondary t12">AddWorkoutActivity</text>
+  </g>
+
+  <!-- Row 2: Dashboard tabs (fragments) -->
+  <g transform="translate(40,930)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- fragment_home.xml (top portion) -->
+    <text x="24" y="72" class="textPrimary t24">Hello!</text>
+    <text x="24" y="96" class="textSecondary t14">Good Morning</text>
+
+    <text x="24" y="150" class="textPrimary t20">Statistics</text>
+    <rect class="card" x="24" y="168" rx="24" ry="24" width="312" height="130"/>
+    <rect class="mutedCard" x="44" y="198" rx="40" ry="40" width="80" height="80"/>
+    <text x="150" y="212" class="textPrimary t18">Daily Goal</text>
+    <text x="150" y="238" class="textSecondary t14">0 of 0 workouts done</text>
+    <text x="84" y="246" text-anchor="middle" class="textPrimary t16b">0%</text>
+
+    <text x="24" y="352" class="textPrimary t20">BMI Calculator</text>
+    <rect class="card" x="24" y="370" rx="24" ry="24" width="312" height="190"/>
+    <rect class="card" x="44" y="404" rx="16" ry="16" width="146" height="56"/>
+    <text x="58" y="438" class="textSecondary t14">Height (cm)</text>
+    <rect class="card" x="190" y="404" rx="16" ry="16" width="146" height="56"/>
+    <text x="204" y="438" class="textSecondary t14">Weight (kg)</text>
+    <rect class="btnPrimary" x="44" y="476" rx="16" ry="16" width="292" height="56"/>
+    <text x="190" y="512" text-anchor="middle" class="btnText">Calculate BMI</text>
+    <text x="44" y="552" class="textSecondary t14">Enter your height and weight to calculate.</text>
+
+    <rect class="nav" x="0" y="672" width="360" height="88"/>
+    <circle cx="68" cy="716" r="12" class="navIconActive"/>
+    <circle cx="150" cy="716" r="12" class="navIcon"/>
+    <circle cx="232" cy="716" r="12" class="navIcon"/>
+    <circle cx="312" cy="716" r="12" class="navIcon"/>
+    <text x="18" y="22" class="textSecondary t12">Dashboard • HomeFragment</text>
+  </g>
+
+  <g transform="translate(430,930)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- fragment_stats.xml -->
+    <text x="180" y="72" text-anchor="middle" class="textPrimary t20">Statistics</text>
+    <rect class="mutedCard" x="24" y="108" rx="16" ry="16" width="48" height="48"/>
+    <text x="48" y="140" text-anchor="middle" class="textSecondary t12">◀</text>
+    <text x="180" y="140" text-anchor="middle" class="textPrimary t18">April 2026</text>
+    <rect class="mutedCard" x="288" y="108" rx="16" ry="16" width="48" height="48"/>
+    <text x="312" y="140" text-anchor="middle" class="textSecondary t12">▶</text>
+
+    <rect class="card" x="24" y="172" rx="16" ry="16" width="312" height="190"/>
+    <text x="44" y="212" class="textSecondary t12">Created</text>
+    <text x="44" y="246" class="textPrimary t24">0</text>
+    <text x="190" y="212" class="textSecondary t12">Completed</text>
+    <text x="190" y="246" class="textPrimary t24">0</text>
+    <text x="44" y="292" class="textPrimary t14b" fill="#F97316">Completion rate: 0%</text>
+    <text x="44" y="320" class="textSecondary t12">Untracked (no date): 0</text>
+
+    <text x="24" y="408" class="textPrimary t18">Daily Breakdown</text>
+    <rect class="card" x="24" y="426" rx="16" ry="16" width="312" height="40"/>
+    <text x="44" y="452" class="textSecondary t12">Day</text>
+    <text x="236" y="452" class="textSecondary t12">Created</text>
+    <text x="312" y="452" text-anchor="end" class="textSecondary t12">Done</text>
+    <rect class="card" x="24" y="476" rx="16" ry="16" width="312" height="150"/>
+    <rect class="mutedCard" x="44" y="496" rx="10" ry="10" width="280" height="22"/>
+    <rect class="mutedCard" x="44" y="532" rx="10" ry="10" width="280" height="22"/>
+    <rect class="mutedCard" x="44" y="568" rx="10" ry="10" width="280" height="22"/>
+
+    <rect class="nav" x="0" y="672" width="360" height="88"/>
+    <circle cx="68" cy="716" r="12" class="navIcon"/>
+    <circle cx="150" cy="716" r="12" class="navIconActive"/>
+    <circle cx="232" cy="716" r="12" class="navIcon"/>
+    <circle cx="312" cy="716" r="12" class="navIcon"/>
+    <text x="18" y="22" class="textSecondary t12">Dashboard • StatsFragment</text>
+  </g>
+
+  <g transform="translate(820,930)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- fragment_calendar.xml -->
+    <text x="180" y="72" text-anchor="middle" class="textPrimary t20">Calendar</text>
+    <rect class="card" x="24" y="108" rx="16" ry="16" width="312" height="250"/>
+    <text x="180" y="238" text-anchor="middle" class="textSecondary t14">CalendarView</text>
+
+    <text x="24" y="396" class="textPrimary t18">30/03/2026</text>
+    <rect class="card" x="24" y="416" rx="16" ry="16" width="312" height="140"/>
+    <text x="44" y="456" class="textSecondary t12">Created</text>
+    <text x="44" y="490" class="textPrimary t20">0</text>
+    <text x="190" y="456" class="textSecondary t12">Completed</text>
+    <text x="190" y="490" class="textPrimary t20">0</text>
+    <text x="44" y="534" class="textPrimary t14b" fill="#F97316">Completion rate: 0%</text>
+
+    <text x="24" y="600" class="textPrimary t18">Tasks</text>
+    <rect class="card" x="24" y="620" rx="16" ry="16" width="312" height="40"/>
+    <text x="44" y="646" class="textSecondary t12">RecyclerView (item_workout)</text>
+
+    <rect class="nav" x="0" y="672" width="360" height="88"/>
+    <circle cx="68" cy="716" r="12" class="navIcon"/>
+    <circle cx="150" cy="716" r="12" class="navIcon"/>
+    <circle cx="232" cy="716" r="12" class="navIconActive"/>
+    <circle cx="312" cy="716" r="12" class="navIcon"/>
+    <text x="18" y="22" class="textSecondary t12">Dashboard • CalendarFragment</text>
+  </g>
+
+  <g transform="translate(1210,930)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- fragment_profile.xml -->
+    <text x="180" y="72" text-anchor="middle" class="textPrimary t20">Profile</text>
+    <circle cx="180" cy="174" r="60" class="accent"/>
+    <circle cx="180" cy="174" r="52" class="mutedCard" opacity="0.0"/>
+    <text x="180" y="182" text-anchor="middle" class="btnText">ic_profile</text>
+    <circle cx="226" cy="218" r="18" class="accent"/>
+    <text x="226" y="223" text-anchor="middle" class="btnText" font-size="12">📷</text>
+    <text x="180" y="270" text-anchor="middle" class="textPrimary t24">Alex</text>
+    <text x="180" y="296" text-anchor="middle" class="textSecondary t14">alex@example.com</text>
+
+    <rect class="card" x="24" y="340" rx="16" ry="16" width="312" height="170"/>
+    <text x="44" y="380" class="textSecondary t12">Date of Birth</text>
+    <text x="44" y="410" class="textPrimary t16b">Not Set</text>
+    <line x1="44" y1="440" x2="316" y2="440" class="divider"/>
+    <text x="44" y="468" class="textSecondary t12">Other Info</text>
+    <text x="44" y="498" class="textPrimary t16b">Health &amp; Fitness Enthusiast</text>
+
+    <text x="24" y="556" class="textPrimary t18">Settings</text>
+    <rect class="card" x="24" y="572" rx="16" ry="16" width="312" height="124"/>
+    <rect class="mutedCard" x="44" y="594" rx="10" ry="10" width="24" height="24"/>
+    <text x="84" y="612" class="textPrimary t16">Edit Profile</text>
+    <text x="312" y="612" text-anchor="end" class="textSecondary t16">›</text>
+    <line x1="76" y1="632" x2="336" y2="632" class="divider"/>
+    <rect class="mutedCard" x="44" y="648" rx="10" ry="10" width="24" height="24"/>
+    <text x="84" y="666" class="textPrimary t16">Dark Mode</text>
+    <rect class="mutedCard" x="284" y="650" rx="14" ry="14" width="52" height="24"/>
+    <circle cx="300" cy="662" r="10" class="accent"/>
+
+    <rect class="nav" x="0" y="672" width="360" height="88"/>
+    <circle cx="68" cy="716" r="12" class="navIcon"/>
+    <circle cx="150" cy="716" r="12" class="navIcon"/>
+    <circle cx="232" cy="716" r="12" class="navIcon"/>
+    <circle cx="312" cy="716" r="12" class="navIconActive"/>
+    <text x="18" y="22" class="textSecondary t12">Dashboard • ProfileFragment</text>
+  </g>
+
+  <!-- Row 3 -->
+  <g transform="translate(40,1750)">
+    <rect class="screen" x="0" y="0" rx="26" ry="26" width="360" height="760"/>
+    <!-- activity_detail.xml (top portion + actions) -->
+    <rect class="card" x="24" y="24" rx="14" ry="14" width="48" height="48"/>
+    <text x="48" y="56" text-anchor="middle" class="textSecondary t12">←</text>
+    <text x="24" y="124" class="textPrimary t32">Workout Details</text>
+
+    <rect class="card" x="24" y="172" rx="16" ry="16" width="312" height="120"/>
+    <text x="44" y="208" class="textPrimary t14b" fill="#F97316">Exercises</text>
+    <text x="44" y="238" class="textPrimary t14">No exercises listed.</text>
+
+    <rect class="card" x="24" y="308" rx="16" ry="16" width="312" height="120"/>
+    <text x="44" y="344" class="textPrimary t14b" fill="#F97316">Equipment</text>
+    <text x="44" y="374" class="textPrimary t14">No equipment needed.</text>
+
+    <rect class="btnPrimary" x="24" y="520" rx="16" ry="16" width="312" height="60" opacity="0.95"/>
+    <text x="180" y="558" text-anchor="middle" class="btnText">Mark as Completed</text>
+    <rect class="btnPrimary" x="24" y="592" rx="16" ry="16" width="312" height="60"/>
+    <text x="180" y="630" text-anchor="middle" class="btnText">Send via Email</text>
+    <rect class="btnPrimary" x="24" y="664" rx="16" ry="16" width="152" height="60"/>
+    <text x="100" y="702" text-anchor="middle" class="btnText">Edit</text>
+    <rect x="184" y="664" rx="16" ry="16" width="152" height="60" fill="#FF5252"/>
+    <text x="260" y="702" text-anchor="middle" class="btnText">Delete</text>
+    <text x="18" y="22" class="textSecondary t12">DetailActivity</text>
+  </g>
+</svg>

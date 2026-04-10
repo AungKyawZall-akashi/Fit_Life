@@ -8,7 +8,7 @@
     app:cardElevation="0dp"
     app:cardBackgroundColor="@color/card_background">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
@@ -17,29 +17,34 @@
             android:id="@+id/ivIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
             android:background="@drawable/input_bg"
             android:backgroundTint="@color/main_background"
             android:padding="10dp"
             android:src="@android:drawable/ic_menu_agenda"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/text_primary" />
 
         <LinearLayout
             android:id="@+id/textLayout"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
-            android:layout_toEndOf="@id/ivIcon"
-            android:layout_toStartOf="@id/rightContainer"
-            android:orientation="vertical">
+            android:layout_marginEnd="16dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/rightContainer"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
                 android:text="Title"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
@@ -67,19 +72,19 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <RelativeLayout
+        <FrameLayout
             android:id="@+id/rightContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/switchAdded"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
+                android:layout_gravity="end|center_vertical"
                 app:thumbTint="@color/accent_orange"
                 app:trackTint="@color/text_secondary" />
 
@@ -87,8 +92,7 @@
                 android:id="@+id/lockLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
+                android:layout_gravity="end|center_vertical"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:visibility="gone">
@@ -110,6 +114,6 @@
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
-        </RelativeLayout>
-    </RelativeLayout>
+        </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

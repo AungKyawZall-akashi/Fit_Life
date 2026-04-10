@@ -170,6 +170,15 @@ public class PlanItemsActivity extends AppCompatActivity {
                         PlanItem item = doc.toObject(PlanItem.class);
                         if (item == null) continue;
                         item.setDocumentId(doc.getId());
+                        if (item.getTitle() == null || item.getTitle().trim().isEmpty()) {
+                            String fallback = item.getKey() != null && !item.getKey().trim().isEmpty()
+                                    ? item.getKey().trim().replace('_', ' ')
+                                    : "Untitled Routine";
+                            if (!fallback.isEmpty()) {
+                                fallback = Character.toUpperCase(fallback.charAt(0)) + fallback.substring(1);
+                            }
+                            item.setTitle(fallback);
+                        }
                         items.add(item);
                     }
 
